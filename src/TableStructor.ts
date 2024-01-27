@@ -45,8 +45,8 @@ export class TableBuilder<T, D extends string> {
     this.getLastProp.columnType = colType;
     return this;
   }
-  
-  get json(){
+
+  get json() {
     return this.colType("JSON");
   }
 
@@ -96,7 +96,7 @@ export class TableBuilder<T, D extends string> {
     return {} as ColumnProps<T, D>;
   }
 
-  objectProtoType(objectProptoType: any) {
+  objectPrototype(objectProptoType: any) {
     this.typeProptoType = objectProptoType;
     return this;
   }

@@ -5,10 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "mocha dist/tests/test.js",
-    "testNew": "mocha dist/tests/QuerySelectorTest.js",
-    "dev": "npm run build & npm run test",
-    "devNew": "npm run build & npm run testNew"
+    "test": "mocha dist/tests/QuerySelectorTest.js",
+    "dev": "npm run build & npm run test"
   },
   "keywords": [
     "sql",

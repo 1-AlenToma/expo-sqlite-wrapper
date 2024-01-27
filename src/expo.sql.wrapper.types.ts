@@ -11,7 +11,8 @@ export type ColumnType =
   | "String"
   | "Decimal"
   | "Boolean"
-  | "DateTime";
+  | "DateTime"
+  | "JSON"
 
 export type NonFunctionPropertyNames<T> = {
   [K in keyof T]: T[K] extends Function
@@ -296,7 +297,7 @@ export type IQueryResultItem<
   T,
   D extends string
 > = T & {
-  savechanges: () => Promise<
+  saveChanges: () => Promise<
     IQueryResultItem<T, D>
   >;
   delete: () => Promise<void>;
@@ -397,7 +398,7 @@ export interface IDatabase<D extends string> {
     tableName: D
   ) => Promise<string[]>;
   /**
-   * convert json to IQueryResultItem object, this will add method as savechanges, update and delete methods to an object
+   * convert json to IQueryResultItem object, this will add method as saveChanges, update and delete methods to an object
    */
   asQueryable: <T extends IId<D>>(
     item: IId<D> | IBaseModule<D>,
@@ -498,4 +499,10 @@ export interface IDatabase<D extends string> {
    * try and drop the database
    */
   dropDatabase: () => Promise<void>;
+
+  /**
+   * migrate new added or removed columns
+   *  constrains is not supported to add
+   */
+  migrateNewChanges: () => Promise<void>;
 }

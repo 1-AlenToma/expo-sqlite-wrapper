@@ -67,6 +67,8 @@ With this we are done with our modules.
 
 ## Properties
 
+`json` the column is a json(string), the lib will stringify and parse the column when called. this is so you could save an objects
+
 `boolean` the column is of boolean type.
 
 `number` the column is of integer type.
@@ -83,9 +85,9 @@ With this we are done with our modules.
 
 `autoIncrement` the column autoIncrement.
 
-`unique` the column act as and id, this is only apply when you are using the library `save` to insert or update your items.
+`unique` the column act as an id, this is only apply when you are using the library `save` to insert or update your items.
 
-`encrypt(encryptionKey)` incrypt the data in the column, this is only applied for string types.
+`encrypt(encryptionKey)` incrypt the data in the column, this is only applied for string and json types.
 
 `objectPrototype()` instead of using `onItemCreate` you could use this instead to convert json item to a `class`. Note that it will skip the contructor call
 

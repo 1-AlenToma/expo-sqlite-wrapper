@@ -395,7 +395,7 @@ class Database<D extends string>
           keys.forEach((k: string, i) => {
             let value = (item as any)[k];
             if (
-              typeof value === "Object" &&
+              typeof value === "object" &&
               value !== null &&
               !Functions.isDate(value)
             )
@@ -643,10 +643,12 @@ class Database<D extends string>
 
   public allowedKeys = async (
     tableName: D,
-    fromCachedKyes?: boolean
+    fromCachedKyes?: boolean,
+    allKeys?: boolean
   ) => {
     if (
       fromCachedKyes === true &&
+      !allKeys &&
       this.mappedKeys.has(tableName)
     )
       return this.mappedKeys.get(tableName);
@@ -703,23 +705,25 @@ class Database<D extends string>
                       data[i].rows[r].name !=
                         "id") ||
                     (table &&
-                      table.props.find(
+                      (table.props.find(
                         x =>
                           x.columnName ==
                             data[i].rows[r]
                               .name &&
                           !x.isAutoIncrement
-                      ))
+                      ) ||
+                        allKeys))
                   )
                     keys.push(
                       data[i].rows[r].name
                     );
                 }
               }
-              this.mappedKeys.set(
-                tableName,
-                keys
-              );
+              if (!allKeys)
+                this.mappedKeys.set(
+                  tableName,
+                  keys
+                );
               resolve(keys);
             } catch (e) {
               console.error(e);
@@ -1108,9 +1112,89 @@ class Database<D extends string>
     }
   };
 
-  public async deleteDatabase() {
+  public async dropDatabase() {
     await this.close();
     await (await this.dataBase()).deleteAsync();
+  }
+
+  async migrateNewChanges() {
+    const dbType = (columnType: ColumnType) => {
+      if (
+        columnType == "Boolean" ||
+        columnType == "Number"
+      )
+        return "INTEGER";
+      if (columnType == "Decimal") return "REAL";
+      return "TEXT";
+    };
+    let sqls = [];
+    for (var table of this.tables) {
+      this.log(
+        `migrating-check ${table.tableName}`
+      );
+      let keys = await this.allowedKeys(
+        table.tableName,
+        false,
+        true
+      );
+      let rColumns = keys.filter(
+        x =>
+          !table.props.find(
+            k => x == k.columnName.toString()
+          )
+      );
+
+      let aColumns = table.props.filter(
+        x =>
+          !keys.find(
+            k => k == x.columnName.toString()
+          )
+      );
+
+      rColumns.forEach(x => {
+        sqls.push(
+          `ALTER TABLE ${table.tableName} DROP COLUMN ${x}`
+        );
+      });
+
+      aColumns.forEach(x => {
+        sqls.push(
+          `ALTER TABLE ${
+            table.tableName
+          } ADD COLUMN ${x.columnName.toString()} ${dbType(
+            x.columnType
+          )}`
+        );
+      });
+    }
+    this.log(`migrating`);
+    try {
+      if (sqls.length > 0) {
+        await this.beginTransaction();
+        await this.execute(
+          "PRAGMA foreign_keys=OFF"
+        );
+      }
+      for (let sql of sqls) {
+        await this.execute(sql);
+      }
+      if (sqls.length > 0) {
+        await this.execute(
+          "PRAGMA foreign_keys=ON"
+        );
+        await this.commitTransaction();
+      } else
+        this.log(
+          "The database is upp to date, no migration needed"
+        );
+    } catch (e) {
+      await this.execute(
+        "PRAGMA foreign_keys=ON"
+      );
+      await this.rollbackTransaction();
+      console.error("migrating failed", e);
+      throw e;
+    }
   }
 
   setUpDataBase = async (

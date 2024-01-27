@@ -4,7 +4,7 @@ import { createQueryResultType, Functions } from '../UsefullMethods'
 import BulkSave from '../BulkSave';
 import TableBuilder from '../TableStructor'
 import QuerySelector, { IQuerySelector } from '../QuerySelector';
-import '../extension'
+//import '../extension'
 import { DetaliItems, Chapters, tables, TableNames } from './TestItems';
 
 
