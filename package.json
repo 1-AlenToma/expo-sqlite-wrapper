@@ -1,6 +1,6 @@
 {
   "name": "expo-sqlite-wrapper",
-  "version": "1.4.4",
+  "version": "1.4.6",
   "description": "This is an ORM, build around expo-sqlite. It will make operation like UPDATE,SELECT AND INSERT a lot easier to handle",
   "main": "dist/index.js",
   "scripts": {
@@ -24,21 +24,22 @@
     "expo",
     "expo-sqlite-wrapper"
   ],
-  "repository": "https://github.com/AlenToma/expo-sqlite-wrapper",
-  "author": "Alen Toma <alen.toma@gmail.com> (https://github.com/AlenToma)",
+  "repository": "https://github.com/1-AlenToma/expo-sqlite-wrapper",
+  "author": "Alen Toma <alen.toma@gmail.com> (https://github.com/1-AlenToma)",
   "bugs": {
-    "url": "https://github.com/AlenToma/expo-sqlite-wrapper/issues"
+    "url": "https://github.com/1-AlenToma/expo-sqlite-wrapper/issues"
   },
-  "homepage": "https://github.com/AlenToma/expo-sqlite-wrapper#readme",
+  "homepage": "https://github.com/1-AlenToma/expo-sqlite-wrapper#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
   "dependencies": {
     "crypto-js": "*",
-    "expo-sqlite": "*",
+    "expo-sqlite": "^13.2.2",
     "json-sql": "*",
-    "react": "*"
+    "react": "*",
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@types/node": "*",
