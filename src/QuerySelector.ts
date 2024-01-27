@@ -1069,35 +1069,3 @@ export default class QuerySelector<T extends IId<D>, D extends string> {
     }
 
 }
-
-// interface TestA {
-//     name: string;
-//     id: number;
-//     password: string;
-//     children: TestB[]
-// }
-
-// interface TestB {
-//     fullName: string;
-//     name: string;
-//     id: number;
-//     alies: string;
-//     parentId: number;
-// }
-
-
-// type TableNames = 'TestA' | 'TestB';
-
-// const query = {} as IQuerySelector<TestA, TableNames>;
-
-// query.LoadChildren<TestB>("TestB", "parentId", "id", "children", true)
-//     .InnerJoin<TestB, 'b'>('TestB', 'b')
-//     .Column((x) => x.a.id)
-//     .EqualTo(query.Where.Column(x => x.id)).GreaterThan(0)
-//     .AND
-//     .Column((x) => x.a.name)
-//     .StartWith('t')
-//     .LeftJoin<TestA, 'tests'>('TestA', 'tests')
-//     .Column((x) => x.tests.name)
-//     .StartWith('#').Where.Column(x => x.a.id).GreaterThan(7)
-//     .Select.Columns(x => [x.tests.id, x.a.name]).Count(x => x.tests.name, "counter").Having.Column("counter").GreaterThan(54).toList()
