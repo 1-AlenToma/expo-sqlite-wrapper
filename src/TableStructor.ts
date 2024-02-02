@@ -45,6 +45,10 @@ export class TableBuilder<T, D extends string> {
     this.getLastProp.columnType = colType;
     return this;
   }
+  
+  get blob() {
+    return this.colType("BLOB");
+  }
 
   get json() {
     return this.colType("JSON");

@@ -3,7 +3,10 @@ import {
   IDatabase,
   IDataBaseExtender
 } from "./expo.sql.wrapper.types";
-import { Functions } from "./UsefullMethods";
+import {
+  Functions,
+  StringBuilder
+} from "./UsefullMethods";
 import * as SQLite from "expo-sqlite";
 
 export default class BulkSave<
@@ -37,7 +40,8 @@ export default class BulkSave<
     itemArray.forEach(item => {
       const q = {
         sql: `INSERT INTO ${this.tableName} (`,
-        args: []
+        args: [],
+        parseble: true
       };
       const keys = Functions.getAvailableKeys(
         this.keys,
@@ -62,8 +66,17 @@ export default class BulkSave<
         let v = (item as any)[k] ?? null;
         if (Functions.isDate(v))
           v = v.toISOString();
-        else if (typeof v === "object" && v)
+        else if (
+          column &&
+          column.columnType === "JSON" &&
+          v
+        )
           v = JSON.stringify(v);
+        if (
+          column &&
+          column.columnType === "BLOB"
+        )
+          q.parseble = false;
         if (typeof v === "boolean")
           v = v === true ? 1 : 0;
         if (column)
@@ -91,7 +104,8 @@ export default class BulkSave<
     itemArray.forEach(item => {
       const q = {
         sql: `UPDATE ${this.tableName} SET `,
-        args: []
+        args: [],
+        parseble: true
       };
       const keys = Functions.getAvailableKeys(
         this.keys,
@@ -111,8 +125,18 @@ export default class BulkSave<
         let v = (item as any)[k] ?? null;
         if (Functions.isDate(v))
           v = v.toISOString();
-        else if (typeof v === "object" && v)
+        else if (
+          column &&
+          column.columnType === "JSON" &&
+          v
+        ) {
           v = JSON.stringify(v);
+        }
+        if (
+          column &&
+          column.columnType === "BLOB"
+        )
+          q.parseble = false;
         if (typeof v === "boolean")
           v = v === true ? 1 : 0;
         if (column)
@@ -137,7 +161,8 @@ export default class BulkSave<
     itemArray.forEach(item => {
       const q = {
         sql: `DELETE FROM ${this.tableName} WHERE id = ?`,
-        args: [item.id]
+        args: [item.id],
+        parseble: true
       };
       this.quries.push(q);
     });
@@ -146,10 +171,49 @@ export default class BulkSave<
 
   async execute() {
     if (this.quries.length > 0) {
-      await this.dbContext.executeRawSql(
-        this.quries,
-        false
-      );
+      let qs = [
+        ...this.quries.filter(x => !x.parseble)
+      ];
+      let sql = [];
+      let c = "?";
+      const tempQuestionMark = "#questionMark";
+      for (let q of this.quries.filter(
+        x => x.parseble
+      )) {
+        let s = new StringBuilder(q.sql);
+        while (
+          s.indexOf(c) !== -1 &&
+          q.args.length > 0
+        ) {
+          let value = q.args.shift();
+          if (
+            Functions.isDefained(value) &&
+            typeof value === "string"
+          ) {
+            if (value.indexOf(c) !== -1)
+              value = value.replace(
+                new RegExp("\\" + c, "gmi"),
+                tempQuestionMark
+              );
+            value = `'${value}'`;
+          }
+          if (!Functions.isDefained(value))
+            value = "NULL";
+          s.replaceIndexOf(c, value.toString());
+        }
+        sql.push(s);
+      }
+      if (sql.length > 0)
+        qs.push({
+          sql: sql
+            .join(";\n")
+            .replace(
+              new RegExp(tempQuestionMark, "gmi"),
+              c
+            ),
+          args: []
+        });
+      await this.dbContext.executeRawSql(qs);
       const db = this
         .dbContext as IDataBaseExtender<D>;
       await db.triggerWatch(

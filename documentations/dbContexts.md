@@ -4,13 +4,15 @@ It is very easy to create the `repository`, it only taks few line. See below
 
 ```ts
 import createDbContext, { IDatabase, IQueryResultItem, IBaseModule } from 'expo-sqlite-wrapper'
-import * as SQLite from 'expo-sqlite';
+import {
+  openDatabaseAsync
+} from "expo-sqlite/next";
 const tables = [Parent.GetTableStructor(), Child.GetTableStructor()]
 export default class DbContext {
   databaseName: string = "mydatabase.db";
   database: IDatabase<TableNames>;
   constructor() {
-    this.database = createDbContext<TableNames>(tables, async () => SQLite.openDatabase(this.databaseName));
+    this.database = createDbContext<TableNames>(tables, async () => await openDatabaseAsync(this.databaseName) as any);
   }
 }
 ```
@@ -22,7 +24,7 @@ export default class DbContext {
   database: IDatabase<TableNames>;
   constructor() {
  this.database = createDbContext<TableNames>(tables, async () => {
-      return SQLite.openDatabase(this.databaseName)
+      return await openDatabaseAsync(this.databaseName) as any
     }, async (db) => {
       try {
         for (let sql of `

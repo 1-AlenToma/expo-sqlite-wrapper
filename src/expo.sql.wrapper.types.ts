@@ -13,6 +13,7 @@ export type ColumnType =
   | "Boolean"
   | "DateTime"
   | "JSON"
+  | "BLOB";
 
 export type NonFunctionPropertyNames<T> = {
   [K in keyof T]: T[K] extends Function
@@ -492,13 +493,8 @@ export interface IDatabase<D extends string> {
    * execute an array of sql
    */
   executeRawSql: (
-    queries: SqlLite.Query[],
-    readOnly: boolean
+    queries: SqlLite.Query[]
   ) => Promise<void>;
-  /**
-   * try and drop the database
-   */
-  dropDatabase: () => Promise<void>;
 
   /**
    * migrate new added or removed columns
