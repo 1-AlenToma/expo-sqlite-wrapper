@@ -153,7 +153,7 @@ export interface IDatabase<D extends string> {
     /**
      * execute an array of sql
      */
-    executeRawSql: (queries: SqlLite.Query[], readOnly: boolean) => Promise<void>;
+    executeRawSql: (queries: SqlQuery[], readOnly: boolean) => Promise<void>;
 
 }
 
