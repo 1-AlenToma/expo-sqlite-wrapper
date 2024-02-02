@@ -1,7 +1,6 @@
-import { IBaseModule, IDatabase } from "./expo.sql.wrapper.types";
-import * as SQLite from "expo-sqlite";
+import { IBaseModule, IDatabase, SQLQuery } from "./expo.sql.wrapper.types";
 export default class BulkSave<T, D extends string> {
-    quries: SQLite.Query[];
+    quries: SQLQuery[];
     private dbContext;
     private keys;
     private tableName;

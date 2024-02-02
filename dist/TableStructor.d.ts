@@ -20,6 +20,7 @@ export declare class TableBuilder<T, D extends string> {
     typeProptoType?: any;
     constructor(tableName: D);
     colType(colType: ColumnType): this;
+    get blob(): this;
     get json(): this;
     get boolean(): this;
     get number(): this;

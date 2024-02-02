@@ -1,7 +1,6 @@
-import { IDatabase, IDataBaseExtender, IQueryResultItem, IId, IBaseModule, IChildLoader, NonFunctionPropertyNames } from './expo.sql.wrapper.types';
-import QuerySelectorTranslator from './QuerySelectorTranslator';
-import * as SqlLite from 'expo-sqlite';
-import { QValue } from './UsefullMethods';
+import { IDatabase, IDataBaseExtender, IQueryResultItem, IId, IBaseModule, IChildLoader, NonFunctionPropertyNames, SQLQuery } from "./expo.sql.wrapper.types";
+import QuerySelectorTranslator from "./QuerySelectorTranslator";
+import { QValue } from "./UsefullMethods";
 export type IColumnSelector<T> = (x: T) => any;
 export type ArrayIColumnSelector<T> = (x: T) => any[];
 export type ArrayAndAliasIColumnSelector<T> = (x: T, as: <B>(column: B, alias: string) => B) => any[];
@@ -67,7 +66,7 @@ export type GlobalIQuerySelector<T, D extends string> = {
     /**
      * get the translated sql
      */
-    getSql: (sqlType: "DELETE" | "SELECT") => SqlLite.Query;
+    getSql: (sqlType: "DELETE" | "SELECT") => SQLQuery;
     getInnerSelectSql: () => string;
 };
 export interface IReturnMethods<T, D extends string> extends GlobalIQuerySelector<T, D> {
@@ -75,8 +74,8 @@ export interface IReturnMethods<T, D extends string> extends GlobalIQuerySelecto
     toList: () => Promise<IQueryResultItem<T, D>[]>;
     findOrSave: (item: T & IBaseModule<D>) => Promise<IQueryResultItem<T, D>>;
     /**
-    * delete based on Query above.
-    */
+     * delete based on Query above.
+     */
     delete: () => Promise<void>;
 }
 export interface IOrderBy<T, ReturnType> {
@@ -93,14 +92,14 @@ export interface IOrderBy<T, ReturnType> {
      */
     Limit: (value: number) => ReturnType;
     /**
-    * GroupBy column or columns
-    */
+     * GroupBy column or columns
+     */
     GroupBy: (columnName: IColumnSelector<T> | ArrayIColumnSelector<T>) => ReturnType;
 }
 export interface GenericQuery<T, ParentType, D extends string, ReturnType> extends IReturnMethods<ParentType, D>, IOrderBy<T, ReturnType> {
     /**
-    * Select based on Column
-    */
+     * Select based on Column
+     */
     Column: (column: IColumnSelector<T>) => ReturnType;
     /**
      * Bring togather columns and values, seperated by ConcatSeperatorChar
@@ -183,8 +182,8 @@ export interface GenericQuery<T, ParentType, D extends string, ReturnType> exten
      */
     Select: IQueryColumnSelector<T, ParentType, D>;
     /**
-    * Add Union Select
-    */
+     * Add Union Select
+     */
     Union: <B extends IId<D>>(...queryselectors: IUnionSelector<B, D>[]) => ReturnType;
     /**
      * Add UnionAll Select
@@ -199,26 +198,26 @@ export interface GenericQuery<T, ParentType, D extends string, ReturnType> exten
      */
     When: GenericQueryWithValue<ReturnType> & ReturnType;
     /**
-    * add Then, work with case
-    */
+     * add Then, work with case
+     */
     Then: GenericQueryWithValue<ReturnType> & ReturnType;
     /**
-    * add Else, work with case
-    */
+     * add Else, work with case
+     */
     Else: GenericQueryWithValue<ReturnType> & ReturnType;
     /**
-    * end case, work with case
-    */
+     * end case, work with case
+     */
     EndCase: GenericQueryWithValue<ReturnType> & ReturnType;
     /**
-    * Load Child or children
-    */
+     * Load Child or children
+     */
     LoadChildren: <B extends IId<D>>(child: D, childColumn: NonFunctionPropertyNames<B>, parentColumn: NonFunctionPropertyNames<ParentType>, assignTo: NonFunctionPropertyNames<ParentType>, isArray?: boolean) => ReturnType;
 }
 export type GenericQueryWithValue<ReturnType> = {
     /**
-    * Add simple Value, work best with case and else
-    */
+     * Add simple Value, work best with case and else
+     */
     Value: (value: SingleValue) => ReturnType;
 };
 export interface ISelectCase<T, ParentType, D extends string> extends Omit<GenericQuery<T, ParentType, D, ISelectCase<T, ParentType, D>>, "EndCase" | "getSql" | "getInnerSelectSql" | "Select" | "OrderByDesc" | "OrderByAsc" | "Limit" | "Union" | "UnionAll" | "GroupBy" | "Select" | "toList" | "firstOrDefault" | "findOrSave" | "delete"> {
@@ -236,16 +235,16 @@ export interface IJoinOn<T, ParentType, D extends string> extends Omit<GenericQu
      */
     LeftJoin: <B, S extends string>(tableName: D, alias: S) => IJoinOn<T & R<B, S>, ParentType, D>;
     /**
-    * join a table
-    * eg Join<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
-    * This will overwrite the above where, so use the Where that is returned by Join method instead
-    */
+     * join a table
+     * eg Join<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
+     * This will overwrite the above where, so use the Where that is returned by Join method instead
+     */
     Join: <B, S extends string>(tableName: D, alias: S) => IJoinOn<T & R<B, S>, ParentType, D>;
     /**
-    * CrossJoin a table
-    * eg CrossJoin<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
-    * This will overwrite the above where, so use the Where that is returned by CrossJoin method instead
-    */
+     * CrossJoin a table
+     * eg CrossJoin<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
+     * This will overwrite the above where, so use the Where that is returned by CrossJoin method instead
+     */
     CrossJoin: <B, S extends string>(tableName: D, alias: S) => IJoinOn<T & R<B, S>, ParentType, D>;
     /**
      * right join a table
@@ -256,15 +255,15 @@ export interface IJoinOn<T, ParentType, D extends string> extends Omit<GenericQu
 }
 export type IWhere<T, ParentType, D extends string> = {
     /**
-    * incase you join data, then you will need to cast or convert the result to other type
-    */
+     * incase you join data, then you will need to cast or convert the result to other type
+     */
     Cast: <B>(converter?: (x: ParentType | unknown) => B) => IReturnMethods<B, D>;
 } & GenericQuery<T, ParentType, D, IWhere<T, ParentType, D>>;
 export interface IHaving<T, ParentType, D extends string> extends Omit<GenericQuery<T, ParentType, D, IHaving<T, ParentType, D>>, "Select" | "Column"> {
     Column: (columnOrAlias: IColumnSelector<T> | string) => IHaving<T, ParentType, D>;
     /**
-    * incase you join data, then you will need to cast or convert the result to other type
-    */
+     * incase you join data, then you will need to cast or convert the result to other type
+     */
     Cast: <B>(converter?: (x: ParentType | unknown) => B) => IReturnMethods<B, D>;
 }
 export interface IQuerySelector<T, D extends string> extends IReturnMethods<T, D>, Omit<IOrderBy<T, IQuerySelector<T, D>>, "GroupBy"> {
@@ -274,29 +273,29 @@ export interface IQuerySelector<T, D extends string> extends IReturnMethods<T, D
      */
     Where: IWhere<T, T, D>;
     /**
-    * Inner join a table
-    * eg InnerJoin<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
-    * This will overwrite the above where, so use the Where that is returned by InnerJoin method instead
-    */
-    InnerJoin: <B, S extends string>(tableName: D, alias: S) => IJoinOn<R<T, 'a'> & R<B, S>, T, D>;
+     * Inner join a table
+     * eg InnerJoin<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
+     * This will overwrite the above where, so use the Where that is returned by InnerJoin method instead
+     */
+    InnerJoin: <B, S extends string>(tableName: D, alias: S) => IJoinOn<R<T, "a"> & R<B, S>, T, D>;
     /**
-    * left join a table
-    * eg LeftJoin<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
-    * This will overwrite the above where, so use the Where that is returned by LeftJoin method instead
-    */
-    LeftJoin: <B, S extends string>(tableName: D, alias: S) => IJoinOn<R<T, 'a'> & R<B, S>, T, D>;
+     * left join a table
+     * eg LeftJoin<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
+     * This will overwrite the above where, so use the Where that is returned by LeftJoin method instead
+     */
+    LeftJoin: <B, S extends string>(tableName: D, alias: S) => IJoinOn<R<T, "a"> & R<B, S>, T, D>;
     /**
-    * join a table
-    * eg Join<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
-    * This will overwrite the above where, so use the Where that is returned by Join method instead
-    */
-    Join: <B, S extends string>(tableName: D, alias: S) => IJoinOn<R<T, 'a'> & R<B, S>, T, D>;
+     * join a table
+     * eg Join<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
+     * This will overwrite the above where, so use the Where that is returned by Join method instead
+     */
+    Join: <B, S extends string>(tableName: D, alias: S) => IJoinOn<R<T, "a"> & R<B, S>, T, D>;
     /**
-    * CrossJoin a table
-    * eg CrossJoin<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
-    * This will overwrite the above where, so use the Where that is returned by CrossJoin method instead
-    */
-    CrossJoin: <B, S extends string>(tableName: D, alias: S) => IJoinOn<R<T, 'a'> & R<B, S>, T, D>;
+     * CrossJoin a table
+     * eg CrossJoin<TableB, "b">("TableB", "b").Column(x=> x.a.id).EqualTo(x=> x.b.parentId)...
+     * This will overwrite the above where, so use the Where that is returned by CrossJoin method instead
+     */
+    CrossJoin: <B, S extends string>(tableName: D, alias: S) => IJoinOn<R<T, "a"> & R<B, S>, T, D>;
     /**
      * Add Union Select
      */
@@ -326,40 +325,40 @@ export interface IQueryColumnSelector<T, ParentType, D extends string> extends I
      */
     Max: (columns: IColumnSelector<T>, alias: string) => IQueryColumnSelector<T, ParentType, D>;
     /**
-    * sqlite aggrigator from Min
-    */
+     * sqlite aggrigator from Min
+     */
     Min: (columns: IColumnSelector<T>, alias: string) => IQueryColumnSelector<T, ParentType, D>;
     /**
-    * sqlite aggrigator from Count
-    */
+     * sqlite aggrigator from Count
+     */
     Count: (columns: IColumnSelector<T>, alias: string) => IQueryColumnSelector<T, ParentType, D>;
     /**
-    * sqlite aggrigator from Sum
-    */
+     * sqlite aggrigator from Sum
+     */
     Sum: (columns: IColumnSelector<T>, alias: string) => IQueryColumnSelector<T, ParentType, D>;
     /**
-    * sqlite aggrigator from Total
-    */
+     * sqlite aggrigator from Total
+     */
     Total: (columns: IColumnSelector<T>, alias: string) => IQueryColumnSelector<T, ParentType, D>;
     /**
-    * sqlite concat columns and values eg lastname || ' ' || firstName as FullName;
-    */
+     * sqlite concat columns and values eg lastname || ' ' || firstName as FullName;
+     */
     Concat: (alias: string, collectCharacters_type: ConcatSeperatorChar, ...columnOrValues: (IColumnSelector<T> | string)[]) => IQueryColumnSelector<T, ParentType, D>;
     /**
-    * sqlite aggrigator from group_concat
-    */
+     * sqlite aggrigator from group_concat
+     */
     GroupConcat: (columns: IColumnSelector<T>, alias: string, seperator?: string) => IQueryColumnSelector<T, ParentType, D>;
     /**
-    * sqlite aggrigator from Avg
-    */
+     * sqlite aggrigator from Avg
+     */
     Avg: (columns: IColumnSelector<T>, alias: string) => IQueryColumnSelector<T, ParentType, D>;
     /**
-    * incase you join data, then you will need to cast or convert the result to other type
-    */
+     * incase you join data, then you will need to cast or convert the result to other type
+     */
     Cast: <B>(converter?: (x: T | unknown) => B) => IReturnMethods<B, D>;
     /**
-    * add having search
-    */
+     * add having search
+     */
     Having: IHaving<T, ParentType, D>;
 }
 declare class ReturnMethods<T, ParentType extends IId<D>, D extends string> {
@@ -370,8 +369,8 @@ declare class ReturnMethods<T, ParentType extends IId<D>, D extends string> {
     findOrSave(item: ParentType & IBaseModule<D>): Promise<IQueryResultItem<ParentType, D>>;
     delete(): Promise<void>;
     /**
-    * get the translated sqlQuery
-    */
+     * get the translated sqlQuery
+     */
     getSql(sqlType: "DELETE" | "SELECT"): {
         sql: string;
         args: any[];

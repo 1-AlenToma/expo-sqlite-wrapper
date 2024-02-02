@@ -1,1 +1,1 @@
-import 'should';
+import "should";

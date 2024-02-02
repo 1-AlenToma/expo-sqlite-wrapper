@@ -11,10 +11,11 @@ import {
   SOperation,
   TempStore,
   WatchIdentifier,
-  IId
+  IId,
+  SQLQuery
 } from "./expo.sql.wrapper.types";
 import { TableBuilder } from "./TableStructor";
-import * as SQLite from "expo-sqlite";
+import * as SQLite from "expo-sqlite/next";
 import { ResultSet } from "expo-sqlite";
 import BulkSave from "./BulkSave";
 import UseQuery from "./hooks/useQuery";
@@ -28,7 +29,7 @@ import {
 
 export default function <D extends string>(
   databaseTables: ITableBuilder<any, D>[],
-  getDatabase: () => Promise<SQLite.WebSQLDatabase>,
+  getDatabase: () => Promise<SQLite.SQLiteDatabase>,
   onInit?: (
     database: IDatabase<D>
   ) => Promise<void>,
@@ -70,14 +71,14 @@ class Database<D extends string>
   implements IDatabase<D>
 {
   private mappedKeys: Map<D, string[]>;
-  private dataBase: () => Promise<SQLite.WebSQLDatabase>;
+  private dataBase: () => Promise<SQLite.SQLiteDatabase>;
   public tables: TableBuilder<any, D>[];
   private timeout: any = undefined;
   private static dbIni: boolean = false;
   private onInit?: (
     database: IDatabase<D>
   ) => Promise<void>;
-  private db?: SQLite.WebSQLDatabase;
+  private db?: SQLite.SQLiteDatabase;
   public isClosed?: boolean;
   private isClosing: boolean;
   private isOpen: boolean;
@@ -93,7 +94,7 @@ class Database<D extends string>
   private timeStamp: Date = new Date();
   constructor(
     databaseTables: ITableBuilder<any, D>[],
-    getDatabase: () => Promise<SQLite.WebSQLDatabase>,
+    getDatabase: () => Promise<SQLite.SQLiteDatabase>,
     onInit?: (
       database: IDatabase<D>
     ) => Promise<void>,
@@ -142,7 +143,7 @@ class Database<D extends string>
     tableName: D,
     query:
       | IQuery<T, D>
-      | SQLite.Query
+      | SQLQuery
       | (() => Promise<T[]>),
     onDbItemChanged?: (items: T[]) => T[]
   ) {
@@ -586,8 +587,9 @@ class Database<D extends string>
     if (this.timer) clearInterval(this.timer);
     this.refresherSettings = { ms };
     this.timer = setInterval(async () => {
+      let stamp = this.timeStamp as any;
       let h =
-        Math.abs(this.timeStamp - new Date()) /
+        Math.abs(stamp - (new Date() as any)) /
         36e5;
       if (
         h < 2 ||
@@ -653,11 +655,11 @@ class Database<D extends string>
       return this.mappedKeys.get(tableName);
 
     try {
-      let result = await (
+      let result = (await (
         await this.dataBase()
       ).getAllAsync(
         `PRAGMA table_info(${tableName})`
-      );
+      )) as any[];
       const table = this.tables.find(
         x => x.tableName === tableName
       );
@@ -816,9 +818,9 @@ class Database<D extends string>
       this.timeStamp = new Date();
       let db = await this.dataBase();
       this.info("executing find:", query);
-      let result = await db.getAllAsync(
+      let result = (await db.getAllAsync(
         query,
-        ...(args ?? [])
+        ...(args ?? [])) as any[]
       );
 
       const table = this.tables.find(
@@ -910,9 +912,7 @@ class Database<D extends string>
     }
   }
 
-  executeRawSql = async (
-    queries: SQLite.Query[]
-  ) => {
+  executeRawSql = async (queries: SQLQuery[]) => {
     try {
       this.timeStamp = new Date();
       let db = await this.dataBase();

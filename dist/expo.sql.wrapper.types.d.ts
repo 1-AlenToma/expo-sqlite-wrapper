@@ -1,8 +1,12 @@
-import * as SqlLite from "expo-sqlite";
 import { TableBuilder } from "./TableStructor";
 import BulkSave from "./BulkSave";
 import { IReturnMethods, IQuerySelector } from "./QuerySelector";
-export type ColumnType = "Number" | "String" | "Decimal" | "Boolean" | "DateTime" | "JSON";
+export type SQLQuery = {
+    sql: string;
+    args: any[];
+    parseble?: boolean;
+};
+export type ColumnType = "Number" | "String" | "Decimal" | "Boolean" | "DateTime" | "JSON" | "BLOB";
 export type NonFunctionPropertyNames<T> = {
     [K in keyof T]: T[K] extends Function ? never : K;
 }[keyof T];
@@ -188,7 +192,7 @@ export type IQueryResultItem<T, D extends string> = T & {
     delete: () => Promise<void>;
     update: (...keys: NonFunctionPropertyNames<T>[]) => Promise<void>;
 };
-declare const OUseQuery: <T extends IId<D>, D extends string>(tableName: D, query: IQuery<T, D> | SqlLite.Query | IReturnMethods<T, D> | (() => Promise<T[]>), onDbItemsChanged?: (items: T[]) => T[]) => readonly [IQueryResultItem<T, D>[], boolean, () => Promise<void>, IDatabase<D>];
+declare const OUseQuery: <T extends IId<D>, D extends string>(tableName: D, query: IQuery<T, D> | SQLQuery | IReturnMethods<T, D> | (() => Promise<T[]>), onDbItemsChanged?: (items: T[]) => T[]) => readonly [IQueryResultItem<T, D>[], boolean, () => Promise<void>, IDatabase<D>];
 export type IUseQuery = typeof OUseQuery;
 export interface IDatabase<D extends string> {
     /**
@@ -312,11 +316,7 @@ export interface IDatabase<D extends string> {
     /**
      * execute an array of sql
      */
-    executeRawSql: (queries: SqlLite.Query[], readOnly: boolean) => Promise<void>;
-    /**
-     * try and drop the database
-     */
-    dropDatabase: () => Promise<void>;
+    executeRawSql: (queries: SQLQuery[]) => Promise<void>;
     /**
      * migrate new added or removed columns
      *  constrains is not supported to add

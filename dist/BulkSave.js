@@ -16,7 +16,8 @@ class BulkSave {
         itemArray.forEach(item => {
             const q = {
                 sql: `INSERT INTO ${this.tableName} (`,
-                args: []
+                args: [],
+                parseble: true
             };
             const keys = UsefullMethods_1.Functions.getAvailableKeys(this.keys, item);
             keys.forEach((k, i) => {
@@ -35,8 +36,13 @@ class BulkSave {
                 let v = (_a = item[k]) !== null && _a !== void 0 ? _a : null;
                 if (UsefullMethods_1.Functions.isDate(v))
                     v = v.toISOString();
-                else if (typeof v === "object" && v)
+                else if (column &&
+                    column.columnType === "JSON" &&
+                    v)
                     v = JSON.stringify(v);
+                if (column &&
+                    column.columnType === "BLOB")
+                    q.parseble = false;
                 if (typeof v === "boolean")
                     v = v === true ? 1 : 0;
                 if (column)
@@ -55,7 +61,8 @@ class BulkSave {
         itemArray.forEach(item => {
             const q = {
                 sql: `UPDATE ${this.tableName} SET `,
-                args: []
+                args: [],
+                parseble: true
             };
             const keys = UsefullMethods_1.Functions.getAvailableKeys(this.keys, item);
             keys.forEach((k, i) => {
@@ -70,8 +77,14 @@ class BulkSave {
                 let v = (_a = item[k]) !== null && _a !== void 0 ? _a : null;
                 if (UsefullMethods_1.Functions.isDate(v))
                     v = v.toISOString();
-                else if (typeof v === "object" && v)
+                else if (column &&
+                    column.columnType === "JSON" &&
+                    v) {
                     v = JSON.stringify(v);
+                }
+                if (column &&
+                    column.columnType === "BLOB")
+                    q.parseble = false;
                 if (typeof v === "boolean")
                     v = v === true ? 1 : 0;
                 if (column)
@@ -90,7 +103,8 @@ class BulkSave {
         itemArray.forEach(item => {
             const q = {
                 sql: `DELETE FROM ${this.tableName} WHERE id = ?`,
-                args: [item.id]
+                args: [item.id],
+                parseble: true
             };
             this.quries.push(q);
         });
@@ -98,7 +112,37 @@ class BulkSave {
     }
     async execute() {
         if (this.quries.length > 0) {
-            await this.dbContext.executeRawSql(this.quries, false);
+            let qs = [
+                ...this.quries.filter(x => !x.parseble)
+            ];
+            let sql = [];
+            let c = "?";
+            const tempQuestionMark = "#questionMark";
+            for (let q of this.quries.filter(x => x.parseble)) {
+                let s = new UsefullMethods_1.StringBuilder(q.sql);
+                while (s.indexOf(c) !== -1 &&
+                    q.args.length > 0) {
+                    let value = q.args.shift();
+                    if (UsefullMethods_1.Functions.isDefained(value) &&
+                        typeof value === "string") {
+                        if (value.indexOf(c) !== -1)
+                            value = value.replace(new RegExp("\\" + c, "gmi"), tempQuestionMark);
+                        value = `'${value}'`;
+                    }
+                    if (!UsefullMethods_1.Functions.isDefained(value))
+                        value = "NULL";
+                    s.replaceIndexOf(c, value.toString());
+                }
+                sql.push(s);
+            }
+            if (sql.length > 0)
+                qs.push({
+                    sql: sql
+                        .join(";\n")
+                        .replace(new RegExp(tempQuestionMark, "gmi"), c),
+                    args: []
+                });
+            await this.dbContext.executeRawSql(qs);
             const db = this
                 .dbContext;
             await db.triggerWatch([], "onBulkSave", undefined, this.tableName);

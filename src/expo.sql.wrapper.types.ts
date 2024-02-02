@@ -1,10 +1,15 @@
-import * as SqlLite from "expo-sqlite";
 import { TableBuilder } from "./TableStructor";
 import BulkSave from "./BulkSave";
 import {
   IReturnMethods,
   IQuerySelector
 } from "./QuerySelector";
+
+export type SQLQuery = {
+  sql: string;
+  args: any[];
+  parseble?:boolean; // internal use only
+};
 
 export type ColumnType =
   | "Number"
@@ -314,7 +319,7 @@ const OUseQuery = <
   tableName: D,
   query:
     | IQuery<T, D>
-    | SqlLite.Query
+    | SQLQuery
     | IReturnMethods<T, D>
     | (() => Promise<T[]>),
   onDbItemsChanged?: (items: T[]) => T[]
@@ -493,7 +498,7 @@ export interface IDatabase<D extends string> {
    * execute an array of sql
    */
   executeRawSql: (
-    queries: SqlLite.Query[]
+    queries: SQLQuery[]
   ) => Promise<void>;
 
   /**

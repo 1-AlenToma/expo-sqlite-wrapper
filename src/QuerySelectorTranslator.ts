@@ -1,5 +1,4 @@
 import QuerySelector, { Param, Where, IColumnSelector } from './QuerySelector'
-import * as SqlLite from 'expo-sqlite'
 import { Counter, StringBuilder, Functions } from './UsefullMethods'
 
 export default class QuerySelectorTranslator {

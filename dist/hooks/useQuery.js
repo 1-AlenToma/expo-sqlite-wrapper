@@ -26,14 +26,14 @@ const UseQuery = (query, dbContext, tableName, onItemChange) => {
                 }
                 else if (!UsefullMethods_1.Functions.isFunc(query)) {
                     const r = [];
-                    for (const x of (await dbContext.find(sQuery.sql, sQuery.args, tableName))) {
+                    for (const x of await dbContext.find(sQuery.sql, sQuery.args, tableName)) {
                         r.push(await (0, UsefullMethods_1.createQueryResultType)(x, dbContext));
                     }
                     dataRef.current = r;
                 }
                 else {
                     const r = [];
-                    for (const x of (await fn())) {
+                    for (const x of await fn()) {
                         r.push(await (0, UsefullMethods_1.createQueryResultType)(x, dbContext));
                     }
                     dataRef.current = r;
@@ -51,7 +51,7 @@ const UseQuery = (query, dbContext, tableName, onItemChange) => {
     const update = () => {
         if (!refMounted.current)
             return;
-        setUpdater(x => ((x !== null && x !== void 0 ? x : 0) > 100 ? 0 : (x !== null && x !== void 0 ? x : 0)) + 1);
+        setUpdater(x => ((x !== null && x !== void 0 ? x : 0) > 100 ? 0 : x !== null && x !== void 0 ? x : 0) + 1);
     };
     const onSave = async (items) => {
         try {
@@ -61,7 +61,10 @@ const UseQuery = (query, dbContext, tableName, onItemChange) => {
                 await refreshData();
             else {
                 setIsLoading(true);
-                items = [...items, ...(dataRef.current.filter(x => !items.find(a => a.id == x.id)))];
+                items = [
+                    ...items,
+                    ...dataRef.current.filter(x => !items.find(a => a.id == x.id))
+                ];
                 const itemsAdded = onItemChange(items);
                 const r = [];
                 for (const x of itemsAdded) {
@@ -93,6 +96,8 @@ const UseQuery = (query, dbContext, tableName, onItemChange) => {
                 dataRef.current = r;
                 update();
             }
+            else if (items.length <= 0)
+                await refreshData();
         }
         catch (e) {
             console.error(e);
@@ -116,7 +121,12 @@ const UseQuery = (query, dbContext, tableName, onItemChange) => {
             refMounted.current = false;
         };
     }, []);
-    return [dataRef.current, isLoading, refreshData, dbContext];
+    return [
+        dataRef.current,
+        isLoading,
+        refreshData,
+        dbContext
+    ];
 };
 exports.default = UseQuery;
 //# sourceMappingURL=useQuery.js.map

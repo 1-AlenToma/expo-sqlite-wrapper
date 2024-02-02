@@ -22,91 +22,57 @@ class Watcher {
 class Database {
     constructor(databaseTables, getDatabase, onInit, disableLog) {
         this.timeout = undefined;
+        this.timeStamp = new Date();
         this.allowedKeys = async (tableName, fromCachedKyes, allKeys) => {
             if (fromCachedKyes === true &&
                 !allKeys &&
                 this.mappedKeys.has(tableName))
                 return this.mappedKeys.get(tableName);
-            return new Promise(async (resolve, reject) => {
-                (await this.dataBase()).exec([
-                    {
-                        sql: `PRAGMA table_info(${tableName})`,
-                        args: []
-                    }
-                ], true, (error, result) => {
-                    var _a, _b, _c;
-                    try {
-                        if (error) {
-                            console.error(error);
-                            reject(error);
-                            return;
-                        }
-                        const arr = Array.isArray(result)
-                            ? result
-                            : [result];
-                        if ((_a = UsefullMethods_1.Functions.single(arr)) === null || _a === void 0 ? void 0 : _a.error) {
-                            console.error((_b = UsefullMethods_1.Functions.single(arr)) === null || _b === void 0 ? void 0 : _b.error);
-                            reject((_c = UsefullMethods_1.Functions.single(arr)) === null || _c === void 0 ? void 0 : _c.error);
-                            return;
-                        }
-                        const table = this.tables.find(x => x.tableName === tableName);
-                        const data = result;
-                        var keys = [];
-                        for (var i = 0; i < data.length; i++) {
-                            for (let r = 0; r < data[i].rows.length; r++) {
-                                if ((table === undefined &&
-                                    data[i].rows[r].name !=
-                                        "id") ||
-                                    (table &&
-                                        (table.props.find(x => x.columnName ==
-                                            data[i].rows[r]
-                                                .name &&
-                                            !x.isAutoIncrement) ||
-                                            allKeys)))
-                                    keys.push(data[i].rows[r].name);
-                            }
-                        }
-                        if (!allKeys)
-                            this.mappedKeys.set(tableName, keys);
-                        resolve(keys);
-                    }
-                    catch (e) {
-                        console.error(e);
-                        reject(e);
-                    }
-                });
-            });
+            try {
+                let result = (await (await this.dataBase()).getAllAsync(`PRAGMA table_info(${tableName})`));
+                const table = this.tables.find(x => x.tableName === tableName);
+                var keys = [];
+                for (let row of result) {
+                    if ((table === undefined &&
+                        row.name != "id") ||
+                        (table &&
+                            (table.props.find(x => x.columnName == row.name &&
+                                !x.isAutoIncrement) ||
+                                allKeys)))
+                        keys.push(row.name);
+                }
+                if (!allKeys)
+                    this.mappedKeys.set(tableName, keys);
+                return keys;
+            }
+            catch (e) {
+                console.error(e);
+                throw e;
+            }
         };
-        this.executeRawSql = async (queries, readOnly) => {
-            const key = "executeRawSql" + JSON.stringify(queries);
-            this.operations.set(key, true);
-            return new Promise(async (resolve, reject) => {
-                try {
-                    (await this.dataBase()).exec(queries, readOnly, (error, result) => {
-                        if (error) {
-                            console.error("SQL Error", error);
-                            reject(error);
-                        }
-                        else
-                            resolve();
-                    });
+        this.executeRawSql = async (queries) => {
+            try {
+                this.timeStamp = new Date();
+                let db = await this.dataBase();
+                for (let sql of queries) {
+                    if (sql.args.length > 0)
+                        await db.runAsync(sql.sql, ...sql.args);
+                    else
+                        await db.execAsync(sql.sql);
                 }
-                catch (e) {
-                    console.error(e);
-                    reject(e);
-                }
-                finally {
-                    this.operations.delete(key);
-                }
-            });
+            }
+            catch (e) {
+                console.error(e);
+                throw e;
+            }
         };
         this.execute = async (query, args) => {
-            const key = "execute" + query;
-            this.operations.set(key, true);
             return new Promise(async (resolve, reject) => {
                 try {
                     this.info("Executing Query:" + query);
-                    await this.executeRawSql([{ sql: query, args: args || [] }], false);
+                    await this.executeRawSql([
+                        { sql: query, args: args || [] }
+                    ]);
                     this.info("Quary executed");
                     resolve(true);
                 }
@@ -115,7 +81,6 @@ class Database {
                     reject(e);
                 }
                 finally {
-                    this.operations.delete(key);
                     clearTimeout(this.timeout);
                 }
             });
@@ -141,6 +106,8 @@ class Database {
                             return "INTEGER";
                         if (columnType == "Decimal")
                             return "REAL";
+                        if (columnType == "BLOB")
+                            return "BLOB";
                         return "TEXT";
                     };
                     this.log(`dbIni= ${Database.dbIni}`);
@@ -196,7 +163,6 @@ class Database {
         this.isClosing = false;
         this.timer = undefined;
         this.transacting = false;
-        this.operations = new Map();
         this.tempStore = [];
         this.dataBase = async () => {
             var _a, _b;
@@ -278,6 +244,7 @@ class Database {
     }
     async triggerWatch(items, operation, subOperation, tableName, identifier) {
         try {
+            this.log("watcher for " + tableName);
             const tItems = Array.isArray(items)
                 ? items
                 : [items];
@@ -333,7 +300,6 @@ class Database {
     }
     localSave(item, insertOnly, tableName, saveAndForget) {
         UsefullMethods_1.Functions.validateTableName(item, tableName);
-        const key = "localSave" + item.tableName;
         return new Promise(async (resolve, reject) => {
             var _a;
             try {
@@ -341,9 +307,9 @@ class Database {
                     reject(undefined);
                     return;
                 }
-                this.operations.set(key, true);
                 this.log("Executing Save...");
                 const uiqueItem = await this.getUique(item);
+                let table = this.tables.find(x => x.tableName == item.tableName);
                 const keys = UsefullMethods_1.Functions.getAvailableKeys(await this.allowedKeys(item.tableName, true), item);
                 const sOperations = uiqueItem
                     ? "UPDATE"
@@ -380,9 +346,8 @@ class Database {
                 }
                 keys.forEach((k, i) => {
                     let value = item[k];
-                    if (typeof value === "object" &&
-                        value !== null &&
-                        !UsefullMethods_1.Functions.isDate(value))
+                    let column = table.props.find(x => x.columnName.toString() === k);
+                    if (column.columnType === "JSON")
                         value = JSON.stringify(value);
                     let v = value !== null && value !== void 0 ? value : null;
                     v = UsefullMethods_1.Functions.translateAndEncrypt(v, this, item.tableName, k);
@@ -399,25 +364,20 @@ class Database {
                     const lastItem = (_a = (await this.selectLastRecord(item))) !== null && _a !== void 0 ? _a : item;
                     item.id = lastItem.id;
                 }
-                this.operations.delete(key);
-                await this.triggerWatch(item, "onSave", sOperations, tableName);
+                await this.triggerWatch([item], "onSave", sOperations, item.tableName || tableName);
                 resolve(item);
             }
             catch (error) {
                 console.error(error, item);
                 reject(error);
-                this.operations.delete(key);
             }
         });
     }
     async localDelete(items, tableName) {
-        const key = "localDelete" + tableName;
-        this.operations.set(key, true);
         var q = `DELETE FROM ${tableName} WHERE id IN (${items
             .map(x => "?")
             .join(",")})`;
         await this.execute(q, items.map(x => x.id));
-        this.operations.delete(key);
     }
     async getUique(item) {
         if (item.id != undefined && item.id > 0)
@@ -512,7 +472,12 @@ class Database {
             clearInterval(this.timer);
         this.refresherSettings = { ms };
         this.timer = setInterval(async () => {
-            if (this.isClosing || this.isClosed)
+            let stamp = this.timeStamp;
+            let h = Math.abs(stamp - new Date()) /
+                36e5;
+            if (h < 2 ||
+                this.isClosing ||
+                this.isClosed)
                 return;
             this.info("db refresh:", await this.tryToClose());
         }, ms);
@@ -535,8 +500,7 @@ class Database {
                 return false;
             if (db.closeAsync === undefined)
                 throw "Cant close the database, name cant be undefined";
-            if (this.isLocked() ||
-                this.operations.size > 0)
+            if (this.isLocked())
                 return false;
             this.isClosing = true;
             await db.closeAsync();
@@ -615,89 +579,73 @@ class Database {
         return (await this.find(q.sql, q.args, tableName));
     }
     async find(query, args, tableName) {
-        const key = query + tableName;
-        this.operations.set(key, true);
-        return new Promise(async (resolve, reject) => {
+        try {
+            this.timeStamp = new Date();
+            let db = await this.dataBase();
             this.info("executing find:", query);
-            (await this.dataBase()).exec([{ sql: query, args: args || [] }], true, (error, result) => {
-                var _a, _b, _c;
-                if (error) {
-                    console.error("Could not execute query:", query, error);
-                    reject(error);
-                    this.operations.delete(key);
-                    return;
-                }
-                const arr = Array.isArray(result)
-                    ? result
-                    : [result];
-                if ((_a = UsefullMethods_1.Functions.single(arr)) === null || _a === void 0 ? void 0 : _a.error) {
-                    console.error((_b = UsefullMethods_1.Functions.single(arr)) === null || _b === void 0 ? void 0 : _b.error);
-                    reject((_c = UsefullMethods_1.Functions.single(arr)) === null || _c === void 0 ? void 0 : _c.error);
-                    return;
-                }
-                const data = result;
-                const table = this.tables.find(x => x.tableName == tableName);
-                const booleanColumns = table === null || table === void 0 ? void 0 : table.props.filter(x => x.columnType == "Boolean");
-                const dateColumns = table === null || table === void 0 ? void 0 : table.props.filter(x => x.columnType == "DateTime");
-                const jsonColumns = table === null || table === void 0 ? void 0 : table.props.filter(x => x.columnType == "JSON");
-                const translateKeys = (item) => {
-                    if (!item || !table)
-                        return item;
-                    jsonColumns.forEach(column => {
-                        var columnName = column.columnName;
-                        if (item[columnName] != undefined &&
-                            item[columnName] != null &&
-                            item[columnName] != "")
-                            item[columnName] = JSON.parse(item[columnName]);
-                    });
-                    booleanColumns.forEach(column => {
-                        var columnName = column.columnName;
-                        if (item[columnName] != undefined &&
-                            item[columnName] != null) {
-                            if (item[columnName] === 0 ||
-                                item[columnName] === "0" ||
-                                item[columnName] === false)
-                                item[columnName] = false;
-                            else
-                                item[columnName] = true;
-                        }
-                    });
-                    dateColumns.forEach(column => {
-                        var columnName = column.columnName;
-                        if (item[columnName] != undefined &&
-                            item[columnName] != null &&
-                            item[columnName].length > 0) {
-                            try {
-                                item[columnName] = new Date(item[columnName]);
-                            }
-                            catch (_a) {
-                                /// ignore
-                            }
-                        }
-                    });
+            let result = await db.getAllAsync(query, ...(args !== null && args !== void 0 ? args : []));
+            const table = this.tables.find(x => x.tableName == tableName);
+            const booleanColumns = table === null || table === void 0 ? void 0 : table.props.filter(x => x.columnType == "Boolean");
+            const dateColumns = table === null || table === void 0 ? void 0 : table.props.filter(x => x.columnType == "DateTime");
+            const jsonColumns = table === null || table === void 0 ? void 0 : table.props.filter(x => x.columnType == "JSON");
+            const translateKeys = (item) => {
+                if (!item || !table)
                     return item;
-                };
-                var items = [];
-                for (var i = 0; i < data.length; i++) {
-                    for (let r = 0; r < data[i].rows.length; r++) {
-                        const item = data[i].rows[r];
-                        if (tableName)
-                            item.tableName = tableName;
-                        let translatedItem = translateKeys(item);
-                        UsefullMethods_1.Functions.oDecrypt(translatedItem, table);
-                        if (table && table.typeProptoType)
-                            translatedItem =
-                                UsefullMethods_1.Functions.createSqlInstaceOfType(table.typeProptoType, translatedItem);
-                        const rItem = table && table.itemCreate
-                            ? table.itemCreate(translatedItem)
-                            : translatedItem;
-                        items.push(rItem);
+                jsonColumns.forEach(column => {
+                    var columnName = column.columnName;
+                    if (item[columnName] != undefined &&
+                        item[columnName] != null &&
+                        item[columnName] != "")
+                        item[columnName] = JSON.parse(item[columnName]);
+                });
+                booleanColumns.forEach(column => {
+                    var columnName = column.columnName;
+                    if (item[columnName] != undefined &&
+                        item[columnName] != null) {
+                        if (item[columnName] === 0 ||
+                            item[columnName] === "0" ||
+                            item[columnName] === false)
+                            item[columnName] = false;
+                        else
+                            item[columnName] = true;
                     }
-                }
-                this.operations.delete(key);
-                resolve(items);
-            });
-        });
+                });
+                dateColumns.forEach(column => {
+                    var columnName = column.columnName;
+                    if (item[columnName] != undefined &&
+                        item[columnName] != null &&
+                        item[columnName].length > 0) {
+                        try {
+                            item[columnName] = new Date(item[columnName]);
+                        }
+                        catch (_a) {
+                            /// ignore
+                        }
+                    }
+                });
+                return item;
+            };
+            var items = [];
+            for (let row of result) {
+                const item = row;
+                if (tableName)
+                    item.tableName = tableName;
+                let translatedItem = translateKeys(item);
+                UsefullMethods_1.Functions.oDecrypt(translatedItem, table);
+                if (table && table.typeProptoType)
+                    translatedItem =
+                        UsefullMethods_1.Functions.createSqlInstaceOfType(table.typeProptoType, translatedItem);
+                const rItem = table && table.itemCreate
+                    ? table.itemCreate(translatedItem)
+                    : translatedItem;
+                items.push(rItem);
+            }
+            return items;
+        }
+        catch (e) {
+            console.error(e);
+            throw e;
+        }
     }
     async bulkSave(tableName) {
         const item = new BulkSave_1.default(this, await this.allowedKeys(tableName, true), tableName);
@@ -714,10 +662,6 @@ class Database {
             tbBuilder.props.filter(x => x.columnName != "id" &&
                 !appSettingsKeys.find(a => a == x.columnName)).length > 0);
     }
-    async dropDatabase() {
-        await this.close();
-        await (await this.dataBase()).deleteAsync();
-    }
     async migrateNewChanges() {
         const dbType = (columnType) => {
             if (columnType == "Boolean" ||
@@ -725,6 +669,8 @@ class Database {
                 return "INTEGER";
             if (columnType == "Decimal")
                 return "REAL";
+            if (columnType == "BLOB")
+                return "BLOB";
             return "TEXT";
         };
         let sqls = [];

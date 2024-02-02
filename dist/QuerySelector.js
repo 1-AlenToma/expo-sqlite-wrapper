@@ -52,8 +52,6 @@ var Param;
     Param["Else"] = "#ELSE";
     Param["EndCase"] = "#END";
 })(Param = exports.Param || (exports.Param = {}));
-;
-;
 class ReturnMethods {
     constructor(parent) {
         this.parent = parent;
@@ -71,8 +69,8 @@ class ReturnMethods {
         await this.parent.delete();
     }
     /**
-    * get the translated sqlQuery
-    */
+     * get the translated sqlQuery
+     */
     getSql(sqlType) {
         return this.parent.getSql(sqlType);
     }
@@ -112,42 +110,60 @@ class QueryColumnSelector extends ReturnMethods {
     }
     Concat(alias, collectCharacters_type, ...columnOrValues) {
         this.parent.clear();
-        this.columns.push(UsefullMethods_1.QValue.Q.Value(columnOrValues).Args(Param.Concat).Value2(collectCharacters_type).Alias(alias));
+        this.columns.push(UsefullMethods_1.QValue.Q.Value(columnOrValues)
+            .Args(Param.Concat)
+            .Value2(collectCharacters_type)
+            .Alias(alias));
         return this;
     }
     Max(columns, alias) {
         this.parent.clear();
-        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns).Args(Param.Max).Alias(alias));
+        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns)
+            .Args(Param.Max)
+            .Alias(alias));
         return this;
     }
     Min(columns, alias) {
         this.parent.clear();
-        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns).Args(Param.Min).Alias(alias));
+        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns)
+            .Args(Param.Min)
+            .Alias(alias));
         return this;
     }
     Count(columns, alias) {
         this.parent.clear();
-        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns).Args(Param.Count).Alias(alias));
+        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns)
+            .Args(Param.Count)
+            .Alias(alias));
         return this;
     }
     Sum(columns, alias) {
         this.parent.clear();
-        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns).Args(Param.Sum).Alias(alias));
+        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns)
+            .Args(Param.Sum)
+            .Alias(alias));
         return this;
     }
     Total(columns, alias) {
         this.parent.clear();
-        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns).Args(Param.Total).Alias(alias));
+        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns)
+            .Args(Param.Total)
+            .Alias(alias));
         return this;
     }
     GroupConcat(columns, alias, seperator) {
         this.parent.clear();
-        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns).Args(Param.GroupConcat).Alias(alias).Value2(seperator));
+        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns)
+            .Args(Param.GroupConcat)
+            .Alias(alias)
+            .Value2(seperator));
         return this;
     }
     Avg(columns, alias) {
         this.parent.clear();
-        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns).Args(Param.Avg).Alias(alias));
+        this.columns.push(UsefullMethods_1.QValue.Q.Value(columns)
+            .Args(Param.Avg)
+            .Alias(alias));
         return this;
     }
     get Having() {
@@ -214,7 +230,8 @@ class Where extends ReturnMethods {
         return this;
     }
     get Select() {
-        this.parent.queryColumnSelector = new QueryColumnSelector(this.parent);
+        this.parent.queryColumnSelector =
+            new QueryColumnSelector(this.parent);
         return this.parent.queryColumnSelector;
     }
     Column(column) {
@@ -224,7 +241,9 @@ class Where extends ReturnMethods {
     }
     Concat(collectCharacters_type, ...columnOrValues) {
         this.parent.clear();
-        this.Queries.push(UsefullMethods_1.QValue.Q.Value(columnOrValues).Args(Param.Concat).Value2(collectCharacters_type));
+        this.Queries.push(UsefullMethods_1.QValue.Q.Value(columnOrValues)
+            .Args(Param.Concat)
+            .Value2(collectCharacters_type));
         return this;
     }
     EqualTo(value) {
@@ -340,7 +359,8 @@ class Where extends ReturnMethods {
     }
     Limit(value) {
         this.parent.clear();
-        this.parent.others = this.parent.others.filter(x => x.args !== Param.Limit);
+        this.parent.others =
+            this.parent.others.filter(x => x.args !== Param.Limit);
         this.parent.others.push(UsefullMethods_1.QValue.Q.Value(value).Args(Param.Limit));
         return this;
     }
@@ -351,7 +371,8 @@ class Where extends ReturnMethods {
     }
     InnerJoin(tableName, alias) {
         this.parent.clear();
-        if (this.alias == alias || this.parent.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.parent.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
         this.parent.buildJsonExpression(tableName, alias);
         const join = new Where(tableName, this.parent, alias, Param.InnerJoin);
@@ -360,7 +381,8 @@ class Where extends ReturnMethods {
     }
     CrossJoin(tableName, alias) {
         this.parent.clear();
-        if (this.alias == alias || this.parent.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.parent.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
         this.parent.buildJsonExpression(tableName, alias);
         const join = new Where(tableName, this.parent, alias, Param.CrossJoin);
@@ -369,7 +391,8 @@ class Where extends ReturnMethods {
     }
     LeftJoin(tableName, alias) {
         this.parent.clear();
-        if (this.alias == alias || this.parent.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.parent.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
         this.parent.buildJsonExpression(tableName, alias);
         const join = new Where(tableName, this.parent, alias, Param.LeftJoin);
@@ -378,7 +401,8 @@ class Where extends ReturnMethods {
     }
     Join(tableName, alias) {
         this.parent.clear();
-        if (this.alias == alias || this.parent.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.parent.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
         this.parent.buildJsonExpression(tableName, alias);
         const join = new Where(tableName, this.parent, alias, Param.Join);
@@ -387,7 +411,8 @@ class Where extends ReturnMethods {
     }
     RightJoin(tableName, alias) {
         this.parent.clear();
-        if (this.alias == alias || this.parent.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.parent.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
         this.parent.buildJsonExpression(tableName, alias);
         const join = new Where(tableName, this.parent, alias, Param.RightJoin);
@@ -395,11 +420,17 @@ class Where extends ReturnMethods {
         return join;
     }
     Union(...queryselectors) {
-        queryselectors.forEach(x => this.parent.unions.push({ type: Param.Union, value: x(this.parent.database) }));
+        queryselectors.forEach(x => this.parent.unions.push({
+            type: Param.Union,
+            value: x(this.parent.database)
+        }));
         return this;
     }
     UnionAll(...queryselectors) {
-        queryselectors.forEach(x => this.parent.unions.push({ type: Param.UnionAll, value: x(this.parent.database) }));
+        queryselectors.forEach(x => this.parent.unions.push({
+            type: Param.UnionAll,
+            value: x(this.parent.database)
+        }));
         return this;
     }
     get Where() {
@@ -414,7 +445,8 @@ class QuerySelector {
         this.type = "QuerySelector";
         this.tableName = tableName;
         this.joins = [];
-        this.database = database;
+        this.database =
+            database;
         this.jsonExpression = {};
         this.buildJsonExpression(tableName, tableName, true);
         this.buildJsonExpression(tableName, "a");
@@ -427,24 +459,33 @@ class QuerySelector {
     }
     buildJsonExpression(tableName, alias, isInit) {
         this.queryColumnSelector = undefined;
-        this.jsonExpression = UsefullMethods_1.Functions.buildJsonExpression(this.jsonExpression, this.database, tableName, alias, isInit);
+        this.jsonExpression =
+            UsefullMethods_1.Functions.buildJsonExpression(this.jsonExpression, this.database, tableName, alias, isInit);
     }
     get Select() {
-        this.queryColumnSelector = new QueryColumnSelector(this);
+        this.queryColumnSelector =
+            new QueryColumnSelector(this);
         return this.queryColumnSelector;
     }
     Union(...queryselectors) {
-        queryselectors.forEach(x => this.unions.push({ type: Param.Union, value: x(this.database) }));
+        queryselectors.forEach(x => this.unions.push({
+            type: Param.Union,
+            value: x(this.database)
+        }));
         return this;
     }
     UnionAll(...queryselectors) {
-        queryselectors.forEach(x => this.unions.push({ type: Param.UnionAll, value: x(this.database) }));
+        queryselectors.forEach(x => this.unions.push({
+            type: Param.UnionAll,
+            value: x(this.database)
+        }));
         return this;
     }
     InnerJoin(tableName, alias) {
-        if (this.alias == alias || this.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
-        this.alias = 'a';
+        this.alias = "a";
         this.buildJsonExpression(tableName, alias);
         this.others = [];
         const join = new Where(tableName, this, alias, Param.InnerJoin);
@@ -452,9 +493,10 @@ class QuerySelector {
         return join;
     }
     CrossJoin(tableName, alias) {
-        if (this.alias == alias || this.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
-        this.alias = 'a';
+        this.alias = "a";
         this.buildJsonExpression(tableName, alias);
         this.others = [];
         const join = new Where(tableName, this, alias, Param.CrossJoin);
@@ -462,9 +504,10 @@ class QuerySelector {
         return join;
     }
     LeftJoin(tableName, alias) {
-        if (this.alias == alias || this.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
-        this.alias = 'a';
+        this.alias = "a";
         this.buildJsonExpression(tableName, alias);
         this.others = [];
         const join = new Where(tableName, this, alias, Param.LeftJoin);
@@ -472,9 +515,10 @@ class QuerySelector {
         return join;
     }
     Join(tableName, alias) {
-        if (this.alias == alias || this.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
-        this.alias = 'a';
+        this.alias = "a";
         this.buildJsonExpression(tableName, alias);
         this.others = [];
         const join = new Where(tableName, this, alias, Param.Join);
@@ -482,9 +526,10 @@ class QuerySelector {
         return join;
     }
     RightJoin(tableName, alias) {
-        if (this.alias == alias || this.joins.find((x) => x.alias == alias))
+        if (this.alias == alias ||
+            this.joins.find(x => x.alias == alias))
             throw `alias can not be ${alias}, it is already in use`;
-        this.alias = 'a';
+        this.alias = "a";
         this.buildJsonExpression(tableName, alias);
         this.others = [];
         const join = new Where(tableName, this, alias, Param.RightJoin);
@@ -506,6 +551,7 @@ class QuerySelector {
         var item = this.getSql("DELETE");
         console.log("Execute delete:" + item.sql);
         await this.database.execute(item.sql, item.args);
+        await this.database.triggerWatch([], "onDelete", undefined, this.tableName);
     }
     async findOrSave(item) {
         const sql = this.getSql("SELECT");
@@ -524,7 +570,9 @@ class QuerySelector {
         let tItem = UsefullMethods_1.Functions.single(await this.database.find(item.sql, item.args, this.tableName));
         if (tItem && this.converter)
             tItem = this.converter(tItem);
-        return tItem ? await (0, UsefullMethods_1.createQueryResultType)(tItem, this.database, this.children) : undefined;
+        return tItem
+            ? await (0, UsefullMethods_1.createQueryResultType)(tItem, this.database, this.children)
+            : undefined;
     }
     async toList() {
         const sql = this.getSql("SELECT");
@@ -538,10 +586,14 @@ class QuerySelector {
         return result;
     }
     getSql(sqlType) {
-        return ((this.translator = (this.translator ? this.translator : new QuerySelectorTranslator_1.default(this))).translate(sqlType));
+        return (this.translator = this.translator
+            ? this.translator
+            : new QuerySelectorTranslator_1.default(this)).translate(sqlType);
     }
     getInnerSelectSql() {
-        return ((this.translator = (this.translator ? this.translator : new QuerySelectorTranslator_1.default(this))).translateToInnerSelectSql());
+        return (this.translator = this.translator
+            ? this.translator
+            : new QuerySelectorTranslator_1.default(this)).translateToInnerSelectSql();
     }
     OrderByAsc(columnName) {
         this.clear();

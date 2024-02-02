@@ -4,14 +4,14 @@ import {
   IDataBaseExtender,
   IId,
   IQuery,
-  IQueryResultItem
+  IQueryResultItem,
+  SQLQuery
 } from "../expo.sql.wrapper.types";
 import { IReturnMethods } from "../QuerySelector";
 import {
   createQueryResultType,
   Functions
 } from "../UsefullMethods";
-import * as SQLite from "expo-sqlite";
 import {
   useState,
   useEffect,
@@ -24,7 +24,7 @@ const UseQuery = <
 >(
   query:
     | IQuery<T, D>
-    | SQLite.Query
+    | SQLQuery
     | IReturnMethods<T, D>
     | (() => Promise<T[]>),
   dbContext: IDatabase<D>,
@@ -52,7 +52,7 @@ const UseQuery = <
       try {
         if (!refMounted.current) return;
         setIsLoading(true);
-        const sQuery = query as SQLite.Query;
+        const sQuery = query as SQLQuery;
         const iQuery = query as IQuery<T, D>;
         const fn = query as () => Promise<T[]>;
         if (iQuery.Column !== undefined) {
@@ -157,7 +157,8 @@ const UseQuery = <
       if (updateList) {
         dataRef.current = r;
         update();
-      } else if (items.length <= 0) await refreshData();
+      } else if (items.length <= 0)
+        await refreshData();
     } catch (e) {
       console.error(e);
     }

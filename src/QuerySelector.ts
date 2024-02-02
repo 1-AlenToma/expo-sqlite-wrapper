@@ -5,10 +5,10 @@ import {
   IId,
   IBaseModule,
   IChildLoader,
-  NonFunctionPropertyNames
+  NonFunctionPropertyNames,
+  SQLQuery
 } from "./expo.sql.wrapper.types";
 import QuerySelectorTranslator from "./QuerySelectorTranslator";
-import * as SqlLite from "expo-sqlite";
 import {
   Errors,
   createQueryResultType,
@@ -121,7 +121,7 @@ export type GlobalIQuerySelector<
    */
   getSql: (
     sqlType: "DELETE" | "SELECT"
-  ) => SqlLite.Query;
+  ) => SQLQuery;
 
   getInnerSelectSql: () => string;
 };
