@@ -8,14 +8,14 @@
 Installation for `expo-sqlite` read https://docs.expo.dev/versions/latest/sdk/sqlite/
 
 ## Documentations
-* [Modules Setup](https://github.com/AlenToma/expo-sqlite-wrapper/blob/main/documentations/SetupModules.md)
-* [DbContext](https://github.com/AlenToma/expo-sqlite-wrapper/blob/main/documentations/dbContexts.md)
-* [Select and save operations](https://github.com/AlenToma/expo-sqlite-wrapper/blob/main/documentations/Select_and_Save.md)
-* [Watch the db operations](https://github.com/AlenToma/expo-sqlite-wrapper/blob/main/documentations/Watcher.md)
-* [BulkSave](https://github.com/AlenToma/expo-sqlite-wrapper/blob/main/documentations/BulkSave.md)
-* [Encryptions](https://github.com/AlenToma/expo-sqlite-wrapper/blob/main/documentations/Encryptions.md)
-* [useQuery](https://github.com/AlenToma/expo-sqlite-wrapper/blob/main/documentations/useQuery.md)
-* [querySelector](https://github.com/AlenToma/expo-sqlite-wrapper/blob/main/documentations/querySelector.md)
+* [Modules Setup](https://github.com/1-AlenToma/expo-sqlite-wrapper/blob/main/documentations/SetupModules.md)
+* [DbContext](https://github.com/1-AlenToma/expo-sqlite-wrapper/blob/main/documentations/dbContexts.md)
+* [Select and save operations](https://github.com/1-AlenToma/expo-sqlite-wrapper/blob/main/documentations/Select_and_Save.md)
+* [Watch the db operations](https://github.com/1-AlenToma/expo-sqlite-wrapper/blob/main/documentations/Watcher.md)
+* [BulkSave](https://github.com/1-AlenToma/expo-sqlite-wrapper/blob/main/documentations/BulkSave.md)
+* [Encryptions](https://github.com/1-AlenToma/expo-sqlite-wrapper/blob/main/documentations/Encryptions.md)
+* [useQuery](https://github.com/1-AlenToma/expo-sqlite-wrapper/blob/main/documentations/useQuery.md)
+* [querySelector](https://github.com/1-AlenToma/expo-sqlite-wrapper/blob/main/documentations/querySelector.md)
 
 
 ### IDatabase
