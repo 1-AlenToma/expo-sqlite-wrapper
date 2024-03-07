@@ -8,7 +8,7 @@ Here is how simple it is to use it.
 
 ```tsx
 const Name =()=> {
- const [users, dataIsLoading] = 
+ const [users, dataIsLoading, reload] = 
   DbContext.database.useQuery("Users",
   DbContext.database.querySelector<User>("Users").Where.Column(x=> x.name).StartsWith("t"));
 
