@@ -1,7 +1,7 @@
 # expo-sqlite-wrapper
  This is an ORM, build around `expo-sqlite`. It will make operation like `UPDATE`, `SELECT` AND `INSERT` a lot easier to handle
 
-## This Lib has been moved to [react-native-sqlite-orm](https://github.com/1-AlenToma/react-native-sqlite-orm). Most of the code is outdated so use [react-native-sqlite-orm](https://github.com/1-AlenToma/react-native-sqlite-orm) instead
+## This Lib has been moved to [react-native-ts-sqlite-orm](https://github.com/1-AlenToma/react-native-ts-sqlite-orm). Most of the code is outdated so use [react-native-ts-sqlite-orm](https://github.com/1-AlenToma/react-native-ts-sqlite-orm) instead
  
  ## Installations
 ```sh
